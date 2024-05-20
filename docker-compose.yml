@@ -1,0 +1,124 @@
+version: "3.5"
+
+networks:
+  rq-net:
+    external: true
+    name: rq-net
+
+volumes:
+  rq-01-storage:
+    name: rq-01-storage
+  rq-02-storage:
+    name: rq-02-storage
+  rq-03-storage:
+    name: rq-03-storage
+  consul-storage:
+    name: consul-storage
+
+services:
+  rabbitmq:
+    image: haproxy:2.8
+    hostname: rabbitmq
+    networks:
+      - rq-net
+    ports:
+      - "1936:1936" # UI
+      - "5672:5672" # AMQP
+      - "15672:15672" # UI
+      # - "1883:1883" # MQTT
+      # - "15675:15675" # WEBSOCKET
+      # - "61613:61613" # STOMP
+      # - "61615:61615" # STOMP (WS)
+    volumes:
+      - "./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 15s
+
+  consul:
+    image: hashicorp/consul:1.18
+    hostname: consul
+    command: [
+        "agent",
+        "-server",
+        "-bootstrap-expect=1",
+        "-retry-max=0",
+        "-retry-interval=30s",
+        "-datacenter=prod",
+        "-retry-join=consul",
+        "-client=0.0.0.0",
+        "-log-level=error",
+        "-log-rotate-max-files=-1",
+        # "-ui",
+      ]
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_CLIENT_INTERFACE=eth0
+    networks:
+      - rq-net
+    ports:
+      - "8400:8400"
+      - "8500:8500"
+    volumes:
+      - consul-storage:/consul/data
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 15s
+
+  rabbitmq-01:
+    image: buraketmen/rabbitmq-mqtt-quorum:latest #Alternatively, you can build your own image using the provided Dockerfile
+    hostname: rabbitmq-01
+    networks:
+      - rq-net
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_PASSWORD}
+      RABBITMQ_CONFIG_FILE: "/etc/rabbitmq/rabbitmq.conf"
+    volumes:
+      - "rq-01-storage:/var/lib/rabbitmq"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+
+  rabbitmq-02:
+    image: buraketmen/rabbitmq-mqtt-quorum:latest #Alternatively, you can build your own image using the provided Dockerfile
+    hostname: rabbitmq-02
+    networks:
+      - rq-net
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_PASSWORD}
+      RABBITMQ_CONFIG_FILE: "/etc/rabbitmq/rabbitmq.conf"
+    volumes:
+      - "rq-02-storage:/var/lib/rabbitmq"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+
+  rabbitmq-03:
+    image: buraketmen/rabbitmq-mqtt-quorum:latest #Alternatively, you can build your own image using the provided Dockerfile
+    hostname: rabbitmq-03
+    networks:
+      - rq-net
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_PASSWORD}
+      RABBITMQ_CONFIG_FILE: "/etc/rabbitmq/rabbitmq.conf"
+    volumes:
+      - "rq-03-storage:/var/lib/rabbitmq"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
