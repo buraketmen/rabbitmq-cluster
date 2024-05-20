@@ -70,7 +70,7 @@ services:
         delay: 15s
 
   rabbitmq-01:
-    image: buraketmen/rabbitmq-mqtt-quorum:latest #Alternatively, you can build your own image using the provided Dockerfile
+    image: <your-image>
     hostname: rabbitmq-01
     networks:
       - rq-net
@@ -88,7 +88,7 @@ services:
         delay: 10s
 
   rabbitmq-02:
-    image: buraketmen/rabbitmq-mqtt-quorum:latest #Alternatively, you can build your own image using the provided Dockerfile
+    image: <your-image>
     hostname: rabbitmq-02
     networks:
       - rq-net
@@ -106,7 +106,7 @@ services:
         delay: 10s
 
   rabbitmq-03:
-    image: buraketmen/rabbitmq-mqtt-quorum:latest #Alternatively, you can build your own image using the provided Dockerfile
+    image: <your-image>
     hostname: rabbitmq-03
     networks:
       - rq-net
