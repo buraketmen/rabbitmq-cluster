@@ -25,10 +25,6 @@ services:
       - "1936:1936" # UI
       - "5672:5672" # AMQP
       - "15672:15672" # UI
-      # - "1883:1883" # MQTT
-      # - "15675:15675" # WEBSOCKET
-      # - "61613:61613" # STOMP
-      # - "61615:61615" # STOMP (WS)
     volumes:
       - "./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
     deploy:
